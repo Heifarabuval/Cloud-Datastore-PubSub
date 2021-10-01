@@ -4,32 +4,37 @@ import (
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
-	"fmt"
 	"log"
 )
-func ReadAll() []models.Webhook {
+func Read(id int64) *models.Webhook {
 	ctx := context.Background()
 
 	projectID := "heifara-test"
+
 
 	client, err := datastore.NewClient(ctx,projectID)
 
 	if err != nil{
 		log.Fatalf("Failed to create client: %v",err)
 	}
-	var webhooks []models.Webhook
 
-	keys, err := client.GetAll(ctx, datastore.NewQuery("Webhook"), &webhooks)
-	fmt.Println(&webhooks)
-	if err != nil {
-		return nil
+	key := &datastore.Key{
+		Kind:      "Webhook",
+		ID:        id,
+		Name:      "",
+		Parent:    nil,
+		Namespace: "",
 	}
-	fmt.Println(keys)
 
+
+	 webhook := new (models.Webhook)
+
+	_ = client.Get(ctx, key, webhook)
 
 	defer client.Close()
 
-	return webhooks
+	return webhook
+
 
 }
 
