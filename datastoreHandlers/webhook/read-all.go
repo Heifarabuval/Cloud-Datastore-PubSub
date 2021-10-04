@@ -1,24 +1,21 @@
-package datastoreHandlers
+package webhook
 
 import (
+	"Calicut/datastoreHandlers"
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
-	"log"
 )
+
 func ReadAll() []models.Webhook {
 	ctx := context.Background()
+	client := datastoreHandlers.CreateClient(ctx)
 
-	projectID := "heifara-test"
-
-	client, err := datastore.NewClient(ctx,projectID)
-
-	if err != nil{
-		log.Fatalf("Failed to create client: %v",err)
-	}
+	//Model
 	var webhooks []models.Webhook
 
-	_, err = client.GetAll(ctx, datastore.NewQuery("Webhook"), &webhooks)
+	//Request
+	_, err := client.GetAll(ctx, datastore.NewQuery("Webhook"), &webhooks)
 
 	if err != nil {
 		return nil
@@ -29,4 +26,3 @@ func ReadAll() []models.Webhook {
 	return webhooks
 
 }
-

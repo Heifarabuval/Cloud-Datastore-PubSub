@@ -2,10 +2,10 @@ package handler
 
 import (
 	"Calicut/datastoreHandlers"
+	"Calicut/datastoreHandlers/webhook"
 	"Calicut/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"strconv"
 )
 
 type Response struct {
@@ -14,7 +14,7 @@ type Response struct {
 }
 
 var (
-	webhooks       = make(map[int64]models.Webhook)
+	webhooks = make(map[int64]models.Webhook)
 )
 
 func CreateWebhook(e *echo.Echo) {
@@ -26,15 +26,23 @@ func CreateWebhook(e *echo.Echo) {
 		if err = c.Bind(dto); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
+
 		if err = c.Validate(dto); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
-		if dto.Op!="sub"&&dto.Op!="add" {
-			return echo.NewHTTPError(http.StatusBadRequest)
+
+		//Validate fields notblank
+		for i := 0; i < len(dto.Fields); i++ {
+			if len(dto.Fields[i]) == 0 {
+				return echo.NewHTTPError(http.StatusBadRequest)
+			}
 		}
 
 		//Persist data
-		id := datastoreHandlers.Create(dto.Op,dto.Fields)
+		id := webhook.Create(dto.Op, dto.Fields)
+		if id == 0 {
+			return echo.NewHTTPError(http.StatusConflict)
+		}
 
 		//Hydrate to return created object
 		w := models.Webhook{
@@ -50,7 +58,7 @@ func CreateWebhook(e *echo.Echo) {
 
 func ReadAllWebhooks(e *echo.Echo) {
 	e.GET("/webhook-all", func(c echo.Context) error {
-		webhooks:= datastoreHandlers.ReadAll()
+		webhooks := webhook.ReadAll()
 		var response = Response{webhooks, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
 	})
@@ -58,75 +66,64 @@ func ReadAllWebhooks(e *echo.Echo) {
 
 func ReadWebhook(e *echo.Echo) {
 	e.GET("/webhook/:id", func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-		//Validate data
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
+
+		_, id := datastoreHandlers.GetAndValidateId(c)
+
+		entity := webhook.Read(id)
+		if entity == nil {
+			return echo.NewHTTPError(http.StatusNotFound)
 		}
 
-		datastoreHandlers.Read(id)
-
-		var response = Response{id, http.StatusOK}
+		var response = Response{entity, http.StatusOK}
 		return c.JSON(response.ResponseCode, response.Json)
 	})
 }
 
 func UpdateWebhook(e *echo.Echo) {
 	e.PUT("/webhook/:id", func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-		//Check if id exist
-		if err != nil {
+		_, id := datastoreHandlers.GetAndValidateId(c)
+
+		dto := new(models.WebhookDtoUpdate)
+
+		if err := c.Bind(dto); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
 
-		//Check if webhook exist
-		data, exist := webhooks[id]
-		if exist != true {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-
-		//Validate data
-		dto := new(models.WebhookDto)
-		if err := c.Bind(dto); err != nil {
-			return err
-		}
 		if err := c.Validate(dto); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
 
-		if dto.Op != "" {
-			data.Op = dto.Op
-		}
-
-		if len(dto.Fields) != 0 {
-			data.Fields = dto.Fields
+		//Validate fields notblank
+		for i := 0; i < len(dto.Fields); i++ {
+			if len(dto.Fields[i]) == 0 {
+				return echo.NewHTTPError(http.StatusBadRequest)
+			}
 		}
 
 		//Persist data
-		webhooks[id] = data
+		key := webhook.Update(id, dto.Op, dto.Fields)
 
-		var response = Response{data, http.StatusOK}
+		if key == nil {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		entity := &models.Webhook{}
+		datastoreHandlers.ReadById(id, "Webhook", entity)
+		var response = Response{entity, http.StatusCreated}
+
 		return c.JSON(response.ResponseCode, response)
 	})
 }
 
 func DeleteWebhook(e *echo.Echo) {
 	e.DELETE("/webhook/:id", func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+		_, id := datastoreHandlers.GetAndValidateId(c)
 
-		//Validate data
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
-		}
-		value, exist := webhooks[id]
-		if exist != true {
+		entity := webhook.Delete(id)
+		if entity == nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
 
-		//Delete & Persist data
-		delete(webhooks, id)
-
-		var response = Response{value, http.StatusOK}
+		var response = Response{entity, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
 	})
 }

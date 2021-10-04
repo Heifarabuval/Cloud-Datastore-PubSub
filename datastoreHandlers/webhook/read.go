@@ -1,40 +1,17 @@
-package datastoreHandlers
+package webhook
 
 import (
+	"Calicut/datastoreHandlers"
 	"Calicut/models"
-	"cloud.google.com/go/datastore"
-	"context"
-	"log"
 )
-func Read(id int64) *models.Webhook {
-	ctx := context.Background()
 
-	projectID := "heifara-test"
+func Read(id int64) interface{} {
 
-
-	client, err := datastore.NewClient(ctx,projectID)
-
-	if err != nil{
-		log.Fatalf("Failed to create client: %v",err)
+	webhook := &models.Webhook{}
+	exist := datastoreHandlers.ReadById(id, "Webhook", webhook)
+	if exist == nil {
+		return exist
 	}
-
-	key := &datastore.Key{
-		Kind:      "Webhook",
-		ID:        id,
-		Name:      "",
-		Parent:    nil,
-		Namespace: "",
-	}
-
-
-	 webhook := new (models.Webhook)
-
-	_ = client.Get(ctx, key, webhook)
-
-	defer client.Close()
-
 	return webhook
 
-
 }
-
