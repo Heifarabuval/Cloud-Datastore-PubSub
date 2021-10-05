@@ -34,12 +34,21 @@ func main() {
 		port = "8000"
 	}
 
-	//Crud webhook handler
+	//Crud webhookDatastore handler
 	handler.CreateWebhook(e)
 	handler.ReadWebhook(e)
 	handler.ReadAllWebhooks(e)
 	handler.UpdateWebhook(e)
 	handler.DeleteWebhook(e)
+
+	//Crud computationDatastore handler
+	handler.CreateComputation(e)
+	handler.ReadAllComputation(e)
+	handler.ReadComputation(e)
+	handler.DeleteComputation(e)
+
+
+
 
 	fmt.Printf("Server run on http://localhost:%s", port)
 

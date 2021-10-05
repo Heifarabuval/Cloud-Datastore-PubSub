@@ -1,4 +1,4 @@
-package webhook
+package computationDatastore
 
 import (
 	"Calicut/datastoreHandlers"
@@ -9,31 +9,24 @@ import (
 
 func Delete(id int64) interface{} {
 
-	//Verify if webhook exist
-	webhook := &models.Webhook{}
-	deletedWebhook := datastoreHandlers.ReadById(id, "Webhook", webhook)
-	if deletedWebhook == nil {
-		return deletedWebhook
+	//Verify if computationDatastore exist
+	computation := &models.ComputationRead{}
+	deletedComputation := datastoreHandlers.ReadById(id, "Computation", computation)
+	if deletedComputation == nil {
+		return deletedComputation
 	}
 
-	//Create client
 	ctx := context.Background()
 	client := datastoreHandlers.CreateClient(ctx)
 
-
-	//Create key for search
 	key := &datastore.Key{
-		Kind:      "Webhook",
+		Kind:      "Computation",
 		ID:        id,
 		Name:      "",
 		Parent:    nil,
 		Namespace: "",
 	}
-
-	_ = client.Delete(ctx, key)
-
+	_ = client.Delete(ctx,key)
 	defer client.Close()
-
-	return deletedWebhook
-
+	return deletedComputation
 }

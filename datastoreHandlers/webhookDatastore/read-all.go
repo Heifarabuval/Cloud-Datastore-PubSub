@@ -1,4 +1,4 @@
-package webhook
+package webhookDatastore
 
 import (
 	"Calicut/datastoreHandlers"

@@ -1,17 +1,19 @@
-package webhook
+package webhookDatastore
 
 import (
 	"Calicut/datastoreHandlers"
 	"Calicut/models"
 )
 
-func Read(id int64) interface{} {
+func Read(id int64) *models.Webhook {
 
 	webhook := &models.Webhook{}
 	exist := datastoreHandlers.ReadById(id, "Webhook", webhook)
+
 	if exist == nil {
-		return exist
+		return webhook
 	}
+
 	return webhook
 
 }

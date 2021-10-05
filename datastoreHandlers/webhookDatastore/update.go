@@ -1,4 +1,4 @@
-package webhook
+package webhookDatastore
 
 import (
 	"Calicut/datastoreHandlers"
@@ -7,24 +7,23 @@ import (
 	"context"
 )
 
-func Update(id int64,op string,fields[]string) interface{} {
+func Update(id int64, op string, fields []string) interface{} {
 	ctx := context.Background()
-	client:= datastoreHandlers.CreateClient(ctx)
+	client := datastoreHandlers.CreateClient(ctx)
 
 	webhook := &models.Webhook{}
 	exist := datastoreHandlers.ReadById(id, "Webhook", webhook)
 	if exist == nil {
 		return exist
 	}
-	if len(op)==0 {
-		op=webhook.Op
+	if len(op) == 0 {
+		op = webhook.Op
 	}
-	if len(fields)==0 {
-		fields=webhook.Fields
+	if len(fields) == 0 {
+		fields = webhook.Fields
 	}
 
-
-	key:=&datastore.Key{
+	key := &datastore.Key{
 		Kind:      "Webhook",
 		ID:        id,
 		Name:      "",
