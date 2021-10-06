@@ -54,4 +54,5 @@ func main() {
 
 	//Run the webserver
 	e.Logger.Fatal(e.Start(":" + port))
+
 }
