@@ -4,6 +4,11 @@ import (
 	"Calicut/datastoreHandlers"
 	"Calicut/datastoreHandlers/computationDatastore"
 	"Calicut/models"
+	"Calicut/utils"
+	"cloud.google.com/go/pubsub"
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -14,6 +19,19 @@ type ComputationDtoCreate struct {
 	Result    int64            `json:"result" json:"webhookId"`
 	Computed  bool             `json:"computed" json:"webhookId"`
 }
+var ctx= context.Background()
+var projectID= utils.GetEnvVar("PROJECT_NAME","heifara-test")
+var pubsubClient, psError = pubsub.NewClient(ctx, projectID)
+var computeTopic = pubsubClient.Topic("compute")
+
+type PubSubPayload struct {
+	ComputationId int64            `json:"computation_id"`
+	Op            string           `json:"op"`
+	Fields        []string         `json:"fields"`
+	Values        map[string]int64 `json:"values"`
+	Result       int64 `json:"result"`
+}
+
 
 func CreateComputation(e *echo.Echo) {
 
@@ -45,7 +63,33 @@ func CreateComputation(e *echo.Echo) {
 			Values:    dto.Values,
 			Computed:  dto.Computed,
 		}
+		
+
+		if psError != nil {
+			return echo.NewHTTPError(http.StatusForbidden)
+		}
+		entity := &models.Webhook{}
+		datastoreHandlers.ReadById(id, "Webhook", entity)
+
+		psPayload, _:= json.Marshal(PubSubPayload{
+			ComputationId: w.ID,
+			Op:            entity.Op,
+			Fields:        entity.Fields,
+			Values:        w.Values,
+			Result:        0,
+		})
+
+		res := computeTopic.Publish(ctx, &pubsub.Message{
+			Data: []byte(psPayload),
+		})
+
 		var response = Response{w, http.StatusCreated}
+
+		_ , _ = fmt.Printf("%#v\n", res)
+
+		if err != nil {
+			return err
+		}
 
 		return c.JSON(response.ResponseCode, response)
 	})

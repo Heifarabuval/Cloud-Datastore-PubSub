@@ -1,8 +1,8 @@
-package main
+package p
 
 import (
-	"Calicut/config"
 	"Calicut/handler"
+	"Calicut/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -29,10 +29,7 @@ func main() {
 
 
 	//Getting port in .env
-	port, ok := config.GetEnvConst("PORT")
-	if !ok {
-		port = "8000"
-	}
+	port := utils.GetEnvVar("PORT","8000")
 
 	//Crud webhookDatastore handler
 	handler.CreateWebhook(e)

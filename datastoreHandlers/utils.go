@@ -1,6 +1,7 @@
 package datastoreHandlers
 
 import (
+	"Calicut/config"
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
@@ -55,7 +56,11 @@ func ReadComputationByWebhookId(id int64) models.ComputationRead {
 
 func CreateClient(ctx context.Context) *datastore.Client {
 	//Create client
-	projectID := "heifara-test"
+	//Getting port in .env
+	projectID, ok := config.GetEnvConst("PROJECT_NAME")
+	if !ok {
+		projectID = "heifara-test"
+	}
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
