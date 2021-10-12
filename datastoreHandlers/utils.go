@@ -1,6 +1,8 @@
 package datastoreHandlers
 
 import (
+	"Calicut/config"
+	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
 	"github.com/labstack/echo/v4"
@@ -11,8 +13,7 @@ import (
 
 func ReadById(id int64, kind string, model interface{}) interface{} {
 
-	//Creating client
-	//TODO ENCAPSULATE
+
 	ctx := context.Background()
 	client := CreateClient(ctx)
 
@@ -39,9 +40,27 @@ func ReadById(id int64, kind string, model interface{}) interface{} {
 
 }
 
+func ReadComputationByWebhookId(id int64) models.ComputationRead {
+	ctx := context.Background()
+	client := CreateClient(ctx)
+	var entity  []models.ComputationRead
+	query := datastore.NewQuery("Computation").Filter("webhookId =", id)
+	_,err := client.GetAll(ctx,query,&entity)
+
+	if err != nil{
+		return models.ComputationRead{}
+	}
+	return entity[0]
+}
+
+
 func CreateClient(ctx context.Context) *datastore.Client {
 	//Create client
-	projectID := "heifara-test"
+	//Getting port in .env
+	projectID, ok := config.GetEnvConst("PROJECT_NAME")
+	if !ok {
+		projectID = "heifara-test"
+	}
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
