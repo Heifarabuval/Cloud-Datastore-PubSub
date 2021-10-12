@@ -15,7 +15,6 @@ type WebhookDto struct {
 	Op     string   `json:"operator" validate:"required,eq=add|eq=sub"`
 }
 
-
 func (w *Webhook) LoadKey(k *datastore.Key) error {
 	w.ID = k.ID
 	return nil

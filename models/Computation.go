@@ -18,11 +18,11 @@ type ComputationDto struct {
 }
 
 type ComputationRead struct {
-	ID        int64              `json:"id" validate:"required"`
-	WebhookId int64              `json:"webhookId" validate:"required"`
-	Result    int64              `json:"result" validate:"required"`
+	ID        int64       `json:"id" validate:"required"`
+	WebhookId int64       `json:"webhookId" validate:"required"`
+	Result    int64       `json:"result" validate:"required"`
 	Values    []CustomMap `json:"values" validate:"required"`
-	Computed  bool               `json:"computed" validate:"required"`
+	Computed  bool        `json:"computed" validate:"required"`
 }
 
 func (c ComputationRead) TransformToMap(computation []CustomMap) map[string]int64 {

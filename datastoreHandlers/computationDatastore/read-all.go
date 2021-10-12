@@ -7,10 +7,6 @@ import (
 	"context"
 )
 
-
-
-
-
 func ReadAll() []models.Computation {
 	ctx := context.Background()
 	client := datastoreHandlers.CreateClient(ctx)
@@ -21,7 +17,6 @@ func ReadAll() []models.Computation {
 
 	//Request
 	_, err := client.GetAll(ctx, datastore.NewQuery("Computation"), &computations)
-
 
 	for i, v := range computations {
 

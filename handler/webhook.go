@@ -68,9 +68,6 @@ func ReadWebhook(e *echo.Echo) {
 	})
 }
 
-
-
-
 type WebhookDtoUpdate struct {
 	Fields []string `json:"fields" validate:"dive,required"`
 	Op     string   `json:"operator" validate:"eq=add|eq=sub|eq="`
@@ -120,6 +117,5 @@ func DeleteWebhook(e *echo.Echo) {
 
 type Result struct {
 	computation interface{}
-	webhook interface{}
+	webhook     interface{}
 }
-

@@ -5,8 +5,6 @@ import (
 	"Calicut/models"
 )
 
-
-
 func Read(id int64) interface{} {
 	computation := &models.ComputationRead{}
 	exist := datastoreHandlers.ReadById(id, "Computation", computation)
@@ -14,7 +12,6 @@ func Read(id int64) interface{} {
 	if exist == nil {
 		return exist
 	}
-
 
 	computationFinal := models.Computation{
 		ID:        computation.ID,

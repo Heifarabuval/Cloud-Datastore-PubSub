@@ -38,11 +38,11 @@ func init() {
 }
 
 type PubSubPayload struct {
-	ComputationId int64            `json:"computation_id"`
-	Op            string           `json:"op"`
-	Fields        []string         `json:"fields"`
+	ComputationId int64              `json:"computation_id"`
+	Op            string             `json:"op"`
+	Fields        []string           `json:"fields"`
 	Values        []models.CustomMap `json:"values"`
-	Result        int64            `json:"result"`
+	Result        int64              `json:"result"`
 }
 
 func CreateComputation(e *echo.Echo) {
@@ -85,14 +85,14 @@ func CreateComputation(e *echo.Echo) {
 		}
 
 		entity := &models.Webhook{}
-		res:= datastoreHandlers.ReadById(dto.WebhookId, "Webhook", entity)
+		res := datastoreHandlers.ReadById(dto.WebhookId, "Webhook", entity)
 
-		if res ==nil {
+		if res == nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 
 		}
 
-		pl:= PubSubPayload{
+		pl := PubSubPayload{
 			ComputationId: id,
 			Op:            entity.Op,
 			Fields:        entity.Fields,
@@ -106,7 +106,6 @@ func CreateComputation(e *echo.Echo) {
 		_ = computeTopic.Publish(ctx, &pubsub.Message{
 			Data: psPayload,
 		})
-
 
 		var response = Response{w, http.StatusCreated}
 

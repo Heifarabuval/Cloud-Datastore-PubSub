@@ -26,7 +26,7 @@ func Delete(id int64) interface{} {
 		Parent:    nil,
 		Namespace: "",
 	}
-	_ = client.Delete(ctx,key)
+	_ = client.Delete(ctx, key)
 	defer client.Close()
 	return deletedComputation
 }

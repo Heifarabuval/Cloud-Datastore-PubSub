@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	CustomValidator  struct {
+	CustomValidator struct {
 		validator *validator.Validate
 	}
 )
@@ -27,9 +27,8 @@ func main() {
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
 
-
 	//Getting port in .env
-	port := utils.GetEnvVar("PORT","8000")
+	port := utils.GetEnvVar("PORT", "8000")
 
 	//Crud webhookDatastore handler
 	handler.CreateWebhook(e)
@@ -43,9 +42,6 @@ func main() {
 	handler.ReadAllComputation(e)
 	handler.ReadComputation(e)
 	handler.DeleteComputation(e)
-
-
-
 
 	fmt.Printf("Server run on http://localhost:%s", port)
 
