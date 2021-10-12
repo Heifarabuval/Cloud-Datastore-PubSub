@@ -38,6 +38,7 @@ func init() {
 }
 
 type PubSubPayload struct {
+	WebhookId     int64              `json:"webhook_id"`
 	ComputationId int64              `json:"computation_id"`
 	Op            string             `json:"op"`
 	Fields        []string           `json:"fields"`
@@ -93,6 +94,7 @@ func CreateComputation(e *echo.Echo) {
 		}
 
 		pl := PubSubPayload{
+			WebhookId: entity.ID,
 			ComputationId: id,
 			Op:            entity.Op,
 			Fields:        entity.Fields,
