@@ -2,6 +2,6 @@
 .PHONY: deploy
 
 deploy:
-	@python main.py --streaming --runner DataflowRunner \
-	--project calicut-315113 --region europe-west1 \
-	--job_name "processed-tasks-`date +"%Y%m%d"`-`uuid | cut -d- -f1`" --requirements_file requirements.txt \
+	@python3 dataflow.py --streaming --runner DirectRunner \
+	--project heifara-test --region europe-west1 \
+	--output gs://dataflow-data
