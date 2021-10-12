@@ -8,30 +8,42 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 )
 
 type ComputationDtoCreate struct {
 	WebhookId int64            `json:"webhookId" json:"webhookId" validate:"required"`
-	Values    map[string]int64 `json:"values" json:"webhookId"`
-	Result    int64            `json:"result" json:"webhookId"`
-	Computed  bool             `json:"computed" json:"webhookId"`
+	Values    map[string]int64 `json:"values"`
+	Result    int64            `json:"result"`
+	Computed  bool             `json:"computed"`
 }
-var ctx= context.Background()
-var projectID= utils.GetEnvVar("PROJECT_NAME","heifara-test")
-var pubsubClient, psError = pubsub.NewClient(ctx, projectID)
-var computeTopic = pubsubClient.Topic("compute")
+
+var (
+	projectID    = utils.GetEnvVar("PROJECT_NAME", "heifara-test")
+	pubsubClient *pubsub.Client
+	computeTopic *pubsub.Topic
+)
+
+func init() {
+	var psError error
+	ctx := context.Background()
+	pubsubClient, psError = pubsub.NewClient(ctx, projectID)
+
+	if psError != nil {
+		log.Fatal(psError)
+	}
+	computeTopic = pubsubClient.Topic("compute")
+}
 
 type PubSubPayload struct {
 	ComputationId int64            `json:"computation_id"`
 	Op            string           `json:"op"`
 	Fields        []string         `json:"fields"`
-	Values        map[string]int64 `json:"values"`
-	Result       int64 `json:"result"`
+	Values        []models.CustomMap `json:"values"`
+	Result        int64            `json:"result"`
 }
-
 
 func CreateComputation(e *echo.Echo) {
 
@@ -55,37 +67,48 @@ func CreateComputation(e *echo.Echo) {
 			return echo.NewHTTPError(http.StatusConflict)
 		}
 
+		var valueToStore []models.CustomMap
+		for key, value := range dto.Values {
+			item := models.CustomMap{
+				Key:   key,
+				Value: value,
+			}
+			valueToStore = append(valueToStore, item)
+		}
+
 		//Hydrate to return created object
-		w := models.Computation{
-			ID:        id,
+		w := models.ComputationDto{
 			WebhookId: dto.WebhookId,
 			Result:    dto.Result,
-			Values:    dto.Values,
+			Values:    valueToStore,
 			Computed:  dto.Computed,
 		}
-		
 
-		if psError != nil {
-			return echo.NewHTTPError(http.StatusForbidden)
-		}
 		entity := &models.Webhook{}
-		datastoreHandlers.ReadById(id, "Webhook", entity)
+		res:= datastoreHandlers.ReadById(dto.WebhookId, "Webhook", entity)
 
-		psPayload, _:= json.Marshal(PubSubPayload{
-			ComputationId: w.ID,
+		if res ==nil {
+			return echo.NewHTTPError(http.StatusBadRequest)
+
+		}
+
+		pl:= PubSubPayload{
+			ComputationId: id,
 			Op:            entity.Op,
 			Fields:        entity.Fields,
 			Values:        w.Values,
 			Result:        0,
+		}
+
+		psPayload, _ := json.Marshal(pl)
+		ctx := context.Background()
+
+		_ = computeTopic.Publish(ctx, &pubsub.Message{
+			Data: psPayload,
 		})
 
-		res := computeTopic.Publish(ctx, &pubsub.Message{
-			Data: []byte(psPayload),
-		})
 
 		var response = Response{w, http.StatusCreated}
-
-		_ , _ = fmt.Printf("%#v\n", res)
 
 		if err != nil {
 			return err
@@ -100,10 +123,10 @@ func ReadComputation(e *echo.Echo) {
 	e.GET("/computation/:id", func(c echo.Context) error {
 
 		_, id := datastoreHandlers.GetAndValidateId(c)
-	/*	formValue := c.FormValue("webhook")
-		if formValue == "1" {
-			datastoreHandlers.ReadComputationByWebhookId(id)
-		}*/
+		/*	formValue := c.FormValue("webhook")
+			if formValue == "1" {
+				datastoreHandlers.ReadComputationByWebhookId(id)
+			}*/
 
 		entity := computationDatastore.Read(id)
 		if entity == nil {
