@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import apache_beam as beam
@@ -13,7 +12,6 @@ subscription = "projects/{}/subscriptions/{}".format(PROJECT_NAME, "getCompute-s
 
 
 def create(data):
-    print(data)
     entity = Entity(key=Key(
         path_elements=['Computation', data['computation_id']],
         project=PROJECT_NAME
