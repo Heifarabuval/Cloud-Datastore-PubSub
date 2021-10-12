@@ -1,4 +1,4 @@
-package p
+package main
 
 import (
 	"Calicut/handler"
@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	CustomValidator struct {
+	CustomValidator  struct {
 		validator *validator.Validate
 	}
 )
