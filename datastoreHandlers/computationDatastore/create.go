@@ -7,9 +7,11 @@ import (
 	"context"
 )
 
-func Create(webhookId int64, values map[string]int64) int64 {
+func Create(webhookId int64, values map[string]int64) (int64, error) {
 	ctx := context.Background()
+
 	var valueToStore []models.CustomMap
+
 	for key, value := range values {
 		item := models.CustomMap{
 			Key:   key,
@@ -19,9 +21,9 @@ func Create(webhookId int64, values map[string]int64) int64 {
 	}
 
 	client := datastoreHandlers.CreateClient(ctx)
-
 	newKey := datastore.IncompleteKey("Computation", nil)
-	entity, err := client.Put(ctx, newKey,
+
+	computation, err := client.Put(ctx, newKey,
 		&models.ComputationDto{
 			WebhookId: webhookId,
 			Values:    valueToStore,
@@ -30,11 +32,11 @@ func Create(webhookId int64, values map[string]int64) int64 {
 		})
 
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
 	defer client.Close()
 
-	return entity.ID
+	return computation.ID, nil
 
 }

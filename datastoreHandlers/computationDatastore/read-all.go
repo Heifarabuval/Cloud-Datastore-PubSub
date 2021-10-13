@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-func ReadAll() []models.Computation {
+func ReadAll() ([]models.Computation, error) {
 	ctx := context.Background()
 	client := datastoreHandlers.CreateClient(ctx)
 
@@ -31,11 +31,11 @@ func ReadAll() []models.Computation {
 	}
 
 	if err != nil {
-		return nil
+		return []models.Computation{}, err
 	}
 
 	defer client.Close()
 
-	return computationsFinal
+	return computationsFinal, nil
 
 }

@@ -3,23 +3,40 @@ package computationDatastore
 import (
 	"Calicut/datastoreHandlers"
 	"Calicut/models"
+	"cloud.google.com/go/datastore"
+	"context"
 )
 
-func Read(id int64) interface{} {
-	computation := &models.ComputationRead{}
-	exist := datastoreHandlers.ReadById(id, "Computation", computation)
+func Read(id int64) (models.ComputationRead, error) {
 
-	if exist == nil {
-		return exist
+	computation := models.ComputationRead{}
+	ctx := context.Background()
+	client := datastoreHandlers.CreateClient(ctx)
+
+	//Create key for search
+	key := &datastore.Key{
+		Kind:      "Computation",
+		ID:        id,
+		Name:      "",
+		Parent:    nil,
+		Namespace: "",
 	}
 
-	computationFinal := models.Computation{
-		ID:        computation.ID,
-		WebhookId: computation.WebhookId,
-		Result:    computation.Result,
-		Values:    computation.TransformToMap(computation.Values),
-		Computed:  computation.Computed,
+	err := client.Get(ctx, key, &computation)
+
+	if err != nil {
+		return computation, err
 	}
 
-	return computationFinal
+	defer client.Close()
+
+	computationPs := models.Computation{}
+
+	//Hydrate data
+	computationPs.ID = computation.ID
+	computationPs.WebhookId = computation.WebhookId
+	computationPs.Result = computation.Result
+	computationPs.Values = computation.TransformToMap(computation.Values)
+	computationPs.Computed = computation.Computed
+	return computation, nil
 }

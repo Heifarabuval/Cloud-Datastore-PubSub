@@ -7,13 +7,12 @@ import (
 	"context"
 )
 
-func Delete(id int64) interface{} {
+func Delete(id int64) (models.Webhook, error) {
 
 	//Verify if webhookDatastore exist
-	webhook := &models.Webhook{}
-	deletedWebhook := datastoreHandlers.ReadById(id, "Webhook", webhook)
-	if deletedWebhook == nil {
-		return deletedWebhook
+	webhook, err := Read(id)
+	if err != nil {
+		return webhook, err
 	}
 
 	//Create client
@@ -33,6 +32,6 @@ func Delete(id int64) interface{} {
 
 	defer client.Close()
 
-	return deletedWebhook
+	return webhook, nil
 
 }
