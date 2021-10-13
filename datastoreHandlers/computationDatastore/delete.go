@@ -10,9 +10,9 @@ import (
 func Delete(id int64) (models.ComputationRead, error) {
 
 	//Verify if computationDatastore exist
-	deletedComputation, err := Read(id)
+	computation, err := Read(id)
 	if err != nil {
-		return deletedComputation, err
+		return computation, err
 	}
 
 	ctx := context.Background()
@@ -27,5 +27,5 @@ func Delete(id int64) (models.ComputationRead, error) {
 	}
 	_ = client.Delete(ctx, key)
 	defer client.Close()
-	return deletedComputation, nil
+	return computation, nil
 }
