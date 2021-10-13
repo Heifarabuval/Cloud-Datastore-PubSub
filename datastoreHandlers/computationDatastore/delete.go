@@ -7,13 +7,12 @@ import (
 	"context"
 )
 
-func Delete(id int64) interface{} {
+func Delete(id int64) (models.ComputationRead, error) {
 
 	//Verify if computationDatastore exist
-	computation := &models.ComputationRead{}
-	deletedComputation := datastoreHandlers.ReadById(id, "Computation", computation)
-	if deletedComputation == nil {
-		return deletedComputation
+	deletedComputation, err := Read(id)
+	if err != nil {
+		return deletedComputation, err
 	}
 
 	ctx := context.Background()
@@ -28,5 +27,5 @@ func Delete(id int64) interface{} {
 	}
 	_ = client.Delete(ctx, key)
 	defer client.Close()
-	return deletedComputation
+	return deletedComputation, nil
 }

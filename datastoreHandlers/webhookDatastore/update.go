@@ -7,14 +7,13 @@ import (
 	"context"
 )
 
-func Update(id int64, op string, fields []string) interface{} {
+func Update(id int64, op string, fields []string) (models.Webhook, error) {
 	ctx := context.Background()
 	client := datastoreHandlers.CreateClient(ctx)
 
-	webhook := &models.Webhook{}
-	exist := datastoreHandlers.ReadById(id, "Webhook", webhook)
-	if exist == nil {
-		return exist
+	webhook, err := Read(id)
+	if err != nil {
+		return webhook, nil
 	}
 	if len(op) == 0 {
 		op = webhook.Op
@@ -31,15 +30,20 @@ func Update(id int64, op string, fields []string) interface{} {
 		Namespace: "",
 	}
 
-	entity, err := client.Put(ctx, key,
+	_, err = client.Put(ctx, key,
 		&models.WebhookDto{
 			Fields: fields,
 			Op:     op,
 		})
 
+	webhook, err = Read(id)
 	if err != nil {
-		return nil
+		return webhook, nil
 	}
 
-	return entity
+	if err != nil {
+		return webhook, nil
+	}
+
+	return webhook, nil
 }

@@ -11,8 +11,7 @@ import (
 	"strconv"
 )
 
-func ReadById(id int64, kind string, model interface{}) interface{} {
-
+func ReadById(id int64, kind string, model interface{}) (interface{},error) {
 
 	ctx := context.Background()
 	client := CreateClient(ctx)
@@ -26,17 +25,17 @@ func ReadById(id int64, kind string, model interface{}) interface{} {
 		Namespace: "",
 	}
 
-	entity := model
 
-	err := client.Get(ctx, key, entity)
+
+	err := client.Get(ctx, key, model)
 
 	if err != nil {
-		return nil
+		return model, err
 	}
 
 	defer client.Close()
 
-	return entity
+	return model,nil
 
 }
 

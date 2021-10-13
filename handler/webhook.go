@@ -39,7 +39,7 @@ func CreateWebhook(e *echo.Echo) {
 			Fields: dto.Fields,
 			Op:     dto.Op,
 		}
-		var response = Response{w, http.StatusCreated}
+		response := Response{w, http.StatusCreated}
 
 		return c.JSON(response.ResponseCode, response)
 	})
@@ -48,7 +48,7 @@ func CreateWebhook(e *echo.Echo) {
 func ReadAllWebhooks(e *echo.Echo) {
 	e.GET("/webhook-all", func(c echo.Context) error {
 		webhooks := webhookDatastore.ReadAll()
-		var response = Response{webhooks, http.StatusOK}
+		response := Response{webhooks, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
 	})
 }
@@ -58,18 +58,18 @@ func ReadWebhook(e *echo.Echo) {
 
 		_, id := datastoreHandlers.GetAndValidateId(c)
 
-		entity := webhookDatastore.Read(id)
-		if entity == nil {
+		entity, err := webhookDatastore.Read(id)
+		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
 
-		var response = Response{entity, http.StatusOK}
+		response := Response{entity, http.StatusOK}
 		return c.JSON(response.ResponseCode, response.Json)
 	})
 }
 
 type WebhookDtoUpdate struct {
-	Fields []string `json:"fields" validate:"dive,required"`
+	Fields []string `json:"fields" validate:"min=2,dive,required" `
 	Op     string   `json:"operator" validate:"eq=add|eq=sub|eq="`
 }
 
@@ -88,14 +88,12 @@ func UpdateWebhook(e *echo.Echo) {
 		}
 
 		//Persist data
-		key := webhookDatastore.Update(id, dto.Op, dto.Fields)
-
-		if key == nil {
+		webhook, err := webhookDatastore.Update(id, dto.Op, dto.Fields)
+		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
-		entity := &models.Webhook{}
-		datastoreHandlers.ReadById(id, "Webhook", entity)
-		var response = Response{entity, http.StatusCreated}
+
+		response := Response{webhook, http.StatusCreated}
 
 		return c.JSON(response.ResponseCode, response)
 	})
@@ -104,13 +102,12 @@ func UpdateWebhook(e *echo.Echo) {
 func DeleteWebhook(e *echo.Echo) {
 	e.DELETE("/webhook/:id", func(c echo.Context) error {
 		_, id := datastoreHandlers.GetAndValidateId(c)
+		webhook, err := webhookDatastore.Delete(id)
 
-		entity := webhookDatastore.Delete(id)
-		if entity == nil {
+		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
-
-		var response = Response{entity, http.StatusOK}
+		response := Response{webhook, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
 	})
 }
