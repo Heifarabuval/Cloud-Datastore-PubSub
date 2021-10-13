@@ -1,17 +1,16 @@
 package computationDatastore
 
 import (
-	"Calicut/datastoreHandlers"
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func Create(webhookId int64, values map[string]int64) (int64, error) {
-	ctx := context.Background()
 
+func (s *DatastoreStoreWebhook) Create(webhookId int64, values map[string]int64) (int64, error) {
+
+	//Transform map for pub/sub
 	var valueToStore []models.CustomMap
-
 	for key, value := range values {
 		item := models.CustomMap{
 			Key:   key,
@@ -20,10 +19,9 @@ func Create(webhookId int64, values map[string]int64) (int64, error) {
 		valueToStore = append(valueToStore, item)
 	}
 
-	client := datastoreHandlers.CreateClient(ctx)
 	newKey := datastore.IncompleteKey("Computation", nil)
 
-	computation, err := client.Put(ctx, newKey,
+	computation, err := s.client.Put(context.Background(), newKey,
 		&models.ComputationDto{
 			WebhookId: webhookId,
 			Values:    valueToStore,
@@ -35,7 +33,6 @@ func Create(webhookId int64, values map[string]int64) (int64, error) {
 		return 0, err
 	}
 
-	defer client.Close()
 
 	return computation.ID, nil
 

@@ -1,22 +1,19 @@
 package computationDatastore
 
 import (
-	"Calicut/datastoreHandlers"
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func ReadAll() ([]models.Computation, error) {
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
+func (s *DatastoreStoreWebhook) ReadAll() ([]models.Computation,error) {
 
 	//Model
 	var computations []models.ComputationRead
 	var computationsFinal []models.Computation
 
 	//Request
-	_, err := client.GetAll(ctx, datastore.NewQuery("Computation"), &computations)
+	_, err := s.client.GetAll(context.Background(), datastore.NewQuery("Computation"), &computations)
 
 	for i, v := range computations {
 
@@ -31,11 +28,11 @@ func ReadAll() ([]models.Computation, error) {
 	}
 
 	if err != nil {
-		return []models.Computation{}, err
+		return []models.Computation{},err
 	}
 
-	defer client.Close()
 
-	return computationsFinal, nil
+
+	return computationsFinal,nil
 
 }

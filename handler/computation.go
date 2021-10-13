@@ -85,7 +85,9 @@ func CreateComputation(e *echo.Echo) {
 		}
 
 		//Persist data
-		id, err := computationDatastore.Create(dto.WebhookId, dto.Values)
+		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		id, err := dsHandler.Create(dto.WebhookId, dto.Values)
+
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusConflict)
@@ -125,7 +127,7 @@ func CreateComputation(e *echo.Echo) {
 		 computeTopic.Publish(ctx, &pubsub.Message{
 			Data: psPayload,
 		})
-		
+
 		response := Response{w, http.StatusCreated}
 
 		if err != nil {
@@ -140,19 +142,22 @@ func CreateComputation(e *echo.Echo) {
 func ReadComputation(e *echo.Echo) {
 	e.GET("/computation/:id", func(c echo.Context) error {
 		_, id := datastoreHandlers.GetAndValidateId(c)
-		entity, err := computationDatastore.Read(id)
+
+		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		computation, err := dsHandler.Read(id)
+
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
-		response := Response{entity, http.StatusOK}
+		response := Response{computation, http.StatusOK}
 		return c.JSON(response.ResponseCode, response.Json)
 	})
 }
 
 func ReadAllComputation(e *echo.Echo) {
 	e.GET("/computation-all", func(c echo.Context) error {
-		computations, err := computationDatastore.ReadAll()
-		println(len(computations))
+		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		computations, err := dsHandler.ReadAll()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
@@ -171,7 +176,8 @@ func UpdateComputation() {
 func DeleteComputation(e *echo.Echo) {
 	e.DELETE("/computation/:id", func(c echo.Context) error {
 		_, id := datastoreHandlers.GetAndValidateId(c)
-		computation,err := computationDatastore.Delete(id)
+		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		computation,err := dsHandler.Delete(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}

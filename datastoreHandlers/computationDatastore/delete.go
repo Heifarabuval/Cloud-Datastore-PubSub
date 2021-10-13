@@ -7,16 +7,18 @@ import (
 	"context"
 )
 
-func Delete(id int64) (models.ComputationRead, error) {
+
+
+func (s *DatastoreStoreWebhook) Delete(id int64) (models.Computation, error) {
 
 	//Verify if computationDatastore exist
-	computation, err := Read(id)
+	ctx := context.Background()
+	dsHandler := InitClient(datastoreHandlers.CreateClient(ctx))
+	computation, err := dsHandler.Read(id)
 	if err != nil {
 		return computation, err
 	}
 
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
 
 	key := &datastore.Key{
 		Kind:      "Computation",
@@ -25,7 +27,7 @@ func Delete(id int64) (models.ComputationRead, error) {
 		Parent:    nil,
 		Namespace: "",
 	}
-	_ = client.Delete(ctx, key)
-	defer client.Close()
+	_ = s.client.Delete(ctx, key)
+
 	return computation, nil
 }

@@ -1,17 +1,16 @@
 package computationDatastore
 
 import (
-	"Calicut/datastoreHandlers"
 	"Calicut/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func Read(id int64) (models.ComputationRead, error) {
 
-	computation := models.ComputationRead{}
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
+
+func (s *DatastoreStoreWebhook)  Read(id int64) (models.Computation, error) {
+
+	computationDs := models.ComputationRead{}
 
 	//Create key for search
 	key := &datastore.Key{
@@ -22,21 +21,19 @@ func Read(id int64) (models.ComputationRead, error) {
 		Namespace: "",
 	}
 
-	err := client.Get(ctx, key, &computation)
+	err := s.client.Get(context.Background(), key, &computationDs)
+	computation := models.Computation{}
 
 	if err != nil {
 		return computation, err
 	}
 
-	defer client.Close()
-
-	computationPs := models.Computation{}
 
 	//Hydrate data
-	computationPs.ID = computation.ID
-	computationPs.WebhookId = computation.WebhookId
-	computationPs.Result = computation.Result
-	computationPs.Values = computation.TransformToMap(computation.Values)
-	computationPs.Computed = computation.Computed
+	computation.ID = computationDs.ID
+	computation.WebhookId = computationDs.WebhookId
+	computation.Result = computationDs.Result
+	computation.Values = computationDs.TransformToMap(computationDs.Values)
+	computation.Computed = computationDs.Computed
 	return computation, nil
 }
