@@ -1,18 +1,14 @@
 package webhookDatastore
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func Read(id int64) (models.Webhook, error) {
+func (s *DatastoreStoreWebhook) Read(id int64) (models.Webhook, error) {
 
 	webhook := models.Webhook{}
-
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
 
 	//Create key for search
 	key := &datastore.Key{
@@ -23,13 +19,11 @@ func Read(id int64) (models.Webhook, error) {
 		Namespace: "",
 	}
 
-	err := client.Get(ctx, key, &webhook)
+	err := s.client.Get(context.Background(), key, &webhook)
 
 	if err != nil {
 		return webhook, err
 	}
-
-	defer client.Close()
 
 	return webhook, nil
 

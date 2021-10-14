@@ -1,27 +1,22 @@
 package webhookDatastore
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func ReadAll() []models.Webhook {
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
+func (s *DatastoreStoreWebhook) ReadAll() []models.Webhook {
 
 	//Model
 	var webhooks []models.Webhook
 
 	//Request
-	_, err := client.GetAll(ctx, datastore.NewQuery("Webhook"), &webhooks)
+	_, err := s.client.GetAll(context.Background(), datastore.NewQuery("Webhook"), &webhooks)
 
 	if err != nil {
 		return nil
 	}
-
-	defer client.Close()
 
 	return webhooks
 

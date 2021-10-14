@@ -1,13 +1,12 @@
 package computationDatastore
 
 import (
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-
-func (s *DatastoreStoreWebhook) Create(webhookId int64, values map[string]int64) (int64, error) {
+func (s *DatastoreStoreComputation) Create(webhookId int64, values map[string]int64) (int64, error) {
 
 	//Transform map for pub/sub
 	var valueToStore []models.CustomMap
@@ -32,7 +31,6 @@ func (s *DatastoreStoreWebhook) Create(webhookId int64, values map[string]int64)
 	if err != nil {
 		return 0, err
 	}
-
 
 	return computation.ID, nil
 

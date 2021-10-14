@@ -1,17 +1,18 @@
 package handler
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/datastoreHandlers/computationDatastore"
-	"Calicut/datastoreHandlers/webhookDatastore"
-	"Calicut/models"
-	"Calicut/utils"
-	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
-	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/computationDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/webhookDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
+	"github.com/labstack/echo/v4"
 )
 
 type ComputationDtoCreate struct {
@@ -69,7 +70,9 @@ func CreateComputation(e *echo.Echo) {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
 
-		webhook, err := webhookDatastore.Read(dto.WebhookId)
+		// Looking for linked webhook
+		dsHandlerWebhook := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		webhook, err := dsHandlerWebhook.Read(dto.WebhookId)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
@@ -85,9 +88,8 @@ func CreateComputation(e *echo.Echo) {
 		}
 
 		//Persist data
-		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		id, err := dsHandler.Create(dto.WebhookId, dto.Values)
-
+		dsHandlerComputation := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		id, err := dsHandlerComputation.Create(dto.WebhookId, dto.Values)
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusConflict)
@@ -124,7 +126,7 @@ func CreateComputation(e *echo.Echo) {
 		psPayload, _ := json.Marshal(pubSubPayload)
 		ctx := context.Background()
 
-		 computeTopic.Publish(ctx, &pubsub.Message{
+		computeTopic.Publish(ctx, &pubsub.Message{
 			Data: psPayload,
 		})
 
@@ -177,7 +179,7 @@ func DeleteComputation(e *echo.Echo) {
 	e.DELETE("/computation/:id", func(c echo.Context) error {
 		_, id := datastoreHandlers.GetAndValidateId(c)
 		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		computation,err := dsHandler.Delete(id)
+		computation, err := dsHandler.Delete(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}

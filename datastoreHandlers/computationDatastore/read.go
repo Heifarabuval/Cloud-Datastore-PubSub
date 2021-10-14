@@ -1,14 +1,12 @@
 package computationDatastore
 
 import (
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-
-
-func (s *DatastoreStoreWebhook)  Read(id int64) (models.Computation, error) {
+func (s *DatastoreStoreComputation) Read(id int64) (models.Computation, error) {
 
 	computationDs := models.ComputationRead{}
 
@@ -27,7 +25,6 @@ func (s *DatastoreStoreWebhook)  Read(id int64) (models.Computation, error) {
 	if err != nil {
 		return computation, err
 	}
-
 
 	//Hydrate data
 	computation.ID = computationDs.ID

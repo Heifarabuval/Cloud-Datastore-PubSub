@@ -1,17 +1,17 @@
 package webhookDatastore
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func Update(id int64, op string, fields []string) (models.Webhook, error) {
+func (s *DatastoreStoreWebhook) Update(id int64, op string, fields []string) (models.Webhook, error) {
 	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
+	dsHandler := InitClient(datastoreHandlers.CreateClient(ctx))
+	webhook, err := dsHandler.Read(id)
 
-	webhook, err := Read(id)
 	if err != nil {
 		return webhook, nil
 	}
@@ -30,13 +30,13 @@ func Update(id int64, op string, fields []string) (models.Webhook, error) {
 		Namespace: "",
 	}
 
-	_, err = client.Put(ctx, key,
+	_, err = s.client.Put(ctx, key,
 		&models.WebhookDto{
 			Fields: fields,
 			Op:     op,
 		})
 
-	webhook, err = Read(id)
+	webhook, err = s.Read(id)
 	if err != nil {
 		return webhook, nil
 	}

@@ -1,11 +1,13 @@
 package computationDatastore
 
-import "cloud.google.com/go/datastore"
+import (
+	"cloud.google.com/go/datastore"
+)
 
-type DatastoreStoreWebhook struct {
+type DatastoreStoreComputation struct {
 	client *datastore.Client
 }
 
-func InitClient(client *datastore.Client) DatastoreStoreWebhook {
-	return DatastoreStoreWebhook{client: client}
+func InitClient(client *datastore.Client) DatastoreStoreComputation {
+	return DatastoreStoreComputation{client: client}
 }

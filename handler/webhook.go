@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/datastoreHandlers/webhookDatastore"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/webhookDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
+	"context"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -26,10 +27,11 @@ func CreateWebhook(e *echo.Echo) {
 		if err = c.Validate(dto); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
+		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 
 		//Persist data
-		id := webhookDatastore.Create(dto.Op, dto.Fields)
-		if id == 0 {
+		id, err := dsHandler.Create(dto.Op, dto.Fields)
+		if err != nil {
 			return echo.NewHTTPError(http.StatusConflict)
 		}
 
@@ -47,7 +49,8 @@ func CreateWebhook(e *echo.Echo) {
 
 func ReadAllWebhooks(e *echo.Echo) {
 	e.GET("/webhook-all", func(c echo.Context) error {
-		webhooks := webhookDatastore.ReadAll()
+		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		webhooks := dsHandler.ReadAll()
 		response := Response{webhooks, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
 	})
@@ -58,7 +61,9 @@ func ReadWebhook(e *echo.Echo) {
 
 		_, id := datastoreHandlers.GetAndValidateId(c)
 
-		entity, err := webhookDatastore.Read(id)
+		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+
+		entity, err := dsHandler.Read(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
@@ -87,8 +92,10 @@ func UpdateWebhook(e *echo.Echo) {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
 
+		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+
 		//Persist data
-		webhook, err := webhookDatastore.Update(id, dto.Op, dto.Fields)
+		webhook, err := dsHandler.Update(id, dto.Op, dto.Fields)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
@@ -102,7 +109,8 @@ func UpdateWebhook(e *echo.Echo) {
 func DeleteWebhook(e *echo.Echo) {
 	e.DELETE("/webhook/:id", func(c echo.Context) error {
 		_, id := datastoreHandlers.GetAndValidateId(c)
-		webhook, err := webhookDatastore.Delete(id)
+		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		webhook, err := dsHandler.Delete(id)
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)

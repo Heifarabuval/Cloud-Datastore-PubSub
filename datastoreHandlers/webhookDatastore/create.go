@@ -1,30 +1,25 @@
 package webhookDatastore
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/models"
-	"cloud.google.com/go/datastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"context"
+
+	"cloud.google.com/go/datastore"
 )
 
-func Create(op string, fields []string) int64 {
-	ctx := context.Background()
-
-	client := datastoreHandlers.CreateClient(ctx)
+func (s *DatastoreStoreWebhook) Create(op string, fields []string) (int64, error) {
 
 	newKey := datastore.IncompleteKey("Webhook", nil)
-	entity, err := client.Put(ctx, newKey,
+	webhook, err := s.client.Put(context.Background(), newKey,
 		&models.WebhookDto{
 			Fields: fields,
 			Op:     op,
 		})
 
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
-	defer client.Close()
-
-	return entity.ID
+	return webhook.ID, nil
 
 }

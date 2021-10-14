@@ -1,23 +1,20 @@
 package webhookDatastore
 
 import (
-	"Calicut/datastoreHandlers"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func Delete(id int64) (models.Webhook, error) {
+func (s *DatastoreStoreWebhook) Delete(id int64) (models.Webhook, error) {
 
 	//Verify if webhookDatastore exist
-	webhook, err := Read(id)
+	dsHandler := InitClient(datastoreHandlers.CreateClient(context.Background()))
+	webhook, err := dsHandler.Read(id)
 	if err != nil {
 		return webhook, err
 	}
-
-	//Create client
-	ctx := context.Background()
-	client := datastoreHandlers.CreateClient(ctx)
 
 	//Create key for search
 	key := &datastore.Key{
@@ -28,9 +25,7 @@ func Delete(id int64) (models.Webhook, error) {
 		Namespace: "",
 	}
 
-	_ = client.Delete(ctx, key)
-
-	defer client.Close()
+	_ = s.client.Delete(context.Background(), key)
 
 	return webhook, nil
 

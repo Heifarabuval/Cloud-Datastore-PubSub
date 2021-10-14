@@ -1,12 +1,12 @@
 package computationDatastore
 
 import (
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 )
 
-func (s *DatastoreStoreWebhook) ReadAll() ([]models.Computation,error) {
+func (s *DatastoreStoreComputation) ReadAll() ([]models.Computation, error) {
 
 	//Model
 	var computations []models.ComputationRead
@@ -28,11 +28,9 @@ func (s *DatastoreStoreWebhook) ReadAll() ([]models.Computation,error) {
 	}
 
 	if err != nil {
-		return []models.Computation{},err
+		return []models.Computation{}, err
 	}
 
-
-
-	return computationsFinal,nil
+	return computationsFinal, nil
 
 }
