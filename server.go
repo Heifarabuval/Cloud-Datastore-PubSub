@@ -1,8 +1,8 @@
 package main
 
 import (
-	"Calicut/handler"
-	"Calicut/utils"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"

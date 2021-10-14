@@ -1,6 +1,6 @@
 package utils
 
-import "Calicut/config"
+import "github.com/Heifarabuval/Cloud-Datastore-PubSub/config"
 
 func GetEnvVar(varKey string, defaultVar string) string {
 	var envConst, projectIdError = config.GetEnvConst(varKey)

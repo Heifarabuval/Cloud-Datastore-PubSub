@@ -1,8 +1,8 @@
 package datastoreHandlers
 
 import (
-	"Calicut/config"
-	"Calicut/models"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/config"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
 	"github.com/labstack/echo/v4"
@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func ReadById(id int64, kind string, model interface{}) (interface{},error) {
+func ReadById(id int64, kind string, model interface{}) (interface{}, error) {
 
 	ctx := context.Background()
 	client := CreateClient(ctx)
@@ -25,8 +25,6 @@ func ReadById(id int64, kind string, model interface{}) (interface{},error) {
 		Namespace: "",
 	}
 
-
-
 	err := client.Get(ctx, key, model)
 
 	if err != nil {
@@ -35,23 +33,22 @@ func ReadById(id int64, kind string, model interface{}) (interface{},error) {
 
 	defer client.Close()
 
-	return model,nil
+	return model, nil
 
 }
 
 func ReadComputationByWebhookId(id int64) models.ComputationRead {
 	ctx := context.Background()
 	client := CreateClient(ctx)
-	var entity  []models.ComputationRead
+	var entity []models.ComputationRead
 	query := datastore.NewQuery("Computation").Filter("webhookId =", id)
-	_,err := client.GetAll(ctx,query,&entity)
+	_, err := client.GetAll(ctx, query, &entity)
 
-	if err != nil{
+	if err != nil {
 		return models.ComputationRead{}
 	}
 	return entity[0]
 }
-
 
 func CreateClient(ctx context.Context) *datastore.Client {
 	//Create client
@@ -69,7 +66,7 @@ func CreateClient(ctx context.Context) *datastore.Client {
 
 func GetAndValidateId(c echo.Context) (*echo.HTTPError, int64) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil || len(c.Param("id"))==0 {
+	if err != nil || len(c.Param("id")) == 0 {
 		return echo.NewHTTPError(http.StatusBadRequest), 0
 	}
 	return nil, id
