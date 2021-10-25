@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
 	"fmt"
+	datastoreHandlers "github.com/Heifarabuval/Cloud-Datastore-PubSub/handler"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -30,18 +30,20 @@ func main() {
 	//Getting port in .env
 	port := utils.GetEnvVar("PORT", "8000")
 
+	handler:= new (datastoreHandlers.Handler)
+
 	//Crud webhookDatastore handler
-	handler.CreateWebhook(e)
-	handler.ReadWebhook(e)
-	handler.ReadAllWebhooks(e)
-	handler.UpdateWebhook(e)
-	handler.DeleteWebhook(e)
+	handler.AddCreateWebhook(e)
+	handler.AddReadWebhook(e)
+	handler.AddReadAllWebhooks(e)
+	handler.AddUpdateWebhook(e)
+	handler.AddDeleteWebhook(e)
 
 	//Crud computationDatastore handler
-	handler.CreateComputation(e)
-	handler.ReadAllComputation(e)
-	handler.ReadComputation(e)
-	handler.DeleteComputation(e)
+	handler.AddCreateComputation(e)
+	handler.AddReadAllComputations(e)
+	handler.AddReadComputation(e)
+	handler.AddDeleteComputation(e)
 
 	fmt.Printf("Server run on http://localhost:%s", port)
 
