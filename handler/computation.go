@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/computationDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/webhookDatastore"
 	"log"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/computationDatastore"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/webhookDatastore"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
 	"github.com/labstack/echo/v4"
@@ -24,19 +24,19 @@ type ComputationDtoCreate struct {
 
 var (
 	projectID    = utils.GetEnvVar("PROJECT_NAME", "heifara-test")
-	pubsubClient *pubsub.Client
+	pubSubClient *pubsub.Client
 	computeTopic *pubsub.Topic
 )
 
 func init() {
 	var psError error
 	ctx := context.Background()
-	pubsubClient, psError = pubsub.NewClient(ctx, projectID)
+	pubSubClient, psError = pubsub.NewClient(ctx, projectID)
 
 	if psError != nil {
 		log.Fatal(psError)
 	}
-	computeTopic = pubsubClient.Topic("compute")
+	computeTopic = pubSubClient.Topic("compute")
 }
 
 type PubSubPayload struct {
@@ -57,9 +57,12 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func CreateComputation(e *echo.Echo) {
+/*===========================================     CREATE       =========================================================*/
 
-	e.POST("/computation", func(c echo.Context) (err error) {
+func (h *Handler) AddCreateComputation(e *echo.Echo) {
+	e.POST("/computation", h.CreateComputation)
+}
+func(h *Handler) CreateComputation(c echo.Context) (err error) {
 
 		//Validate data
 		dto := new(ComputationDtoCreate)
@@ -137,27 +140,16 @@ func CreateComputation(e *echo.Echo) {
 		}
 
 		return c.JSON(response.ResponseCode, response)
-	})
 
 }
 
-func ReadComputation(e *echo.Echo) {
-	e.GET("/computation/:id", func(c echo.Context) error {
-		_, id := datastoreHandlers.GetAndValidateId(c)
+/*===========================================     READ ALL     =========================================================*/
 
-		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		computation, err := dsHandler.Read(id)
-
-		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-		response := Response{computation, http.StatusOK}
-		return c.JSON(response.ResponseCode, response.Json)
-	})
+func (h *Handler) AddReadAllComputations(e *echo.Echo) {
+	e.GET("/computation-all", h.ReadAllComputations)
 }
 
-func ReadAllComputation(e *echo.Echo) {
-	e.GET("/computation-all", func(c echo.Context) error {
+func (h *Handler) ReadAllComputations(c echo.Context) (err error) {
 		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 		computations, err := dsHandler.ReadAll()
 		if err != nil {
@@ -168,15 +160,34 @@ func ReadAllComputation(e *echo.Echo) {
 		}
 		response := Response{computations, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
-	})
 }
 
-func UpdateComputation() {
+/*=============================================     READ      ==========================================================*/
+
+func (h *Handler) AddReadComputation(e *echo.Echo)  {
+	e.GET("/computation/:id",h.ReadComputation)
+}
+func (h *Handler) ReadComputation(c echo.Context) (err error) {
+
+		_, id := datastoreHandlers.GetAndValidateId(c)
+
+		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+		computation, err := dsHandler.Read(id)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		response := Response{computation, http.StatusOK}
+		return c.JSON(response.ResponseCode, response.Json)
 
 }
 
-func DeleteComputation(e *echo.Echo) {
-	e.DELETE("/computation/:id", func(c echo.Context) error {
+/*===========================================      DELETE      =========================================================*/
+
+func (h *Handler) AddDeleteComputation(e *echo.Echo)  {
+	e.DELETE("/computation/:id",h.DeleteWebhook)
+}
+func (h *Handler) DeleteComputation(c echo.Context) (err error) {
 		_, id := datastoreHandlers.GetAndValidateId(c)
 		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 		computation, err := dsHandler.Delete(id)
@@ -185,6 +196,5 @@ func DeleteComputation(e *echo.Echo) {
 		}
 		response := Response{computation, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
-	})
 
 }
