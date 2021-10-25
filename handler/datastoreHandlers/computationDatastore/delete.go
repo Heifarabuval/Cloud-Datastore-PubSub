@@ -3,7 +3,7 @@ package computationDatastore
 import (
 	"cloud.google.com/go/datastore"
 	"context"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 )
 
