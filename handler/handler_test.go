@@ -44,4 +44,3 @@ func CreateMockedHandler() (h Handler, mockedStoreWebhook *MockedStoreWebhook, m
 
 }*/
 
-/*func initMockHandler()(h )*/
