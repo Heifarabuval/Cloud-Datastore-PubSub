@@ -1,10 +1,10 @@
 package webhookDatastore
 
 import (
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 )
 
 func (s *DatastoreStoreWebhook) Update(id int64, op string, fields []string) (models.Webhook, error) {

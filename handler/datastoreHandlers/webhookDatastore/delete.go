@@ -1,10 +1,10 @@
 package webhookDatastore
 
 import (
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 )
 
 func (s *DatastoreStoreWebhook) Delete(id int64) (models.Webhook, error) {
@@ -15,6 +15,8 @@ func (s *DatastoreStoreWebhook) Delete(id int64) (models.Webhook, error) {
 	if err != nil {
 		return webhook, err
 	}
+
+
 
 	//Create key for search
 	key := &datastore.Key{

@@ -1,10 +1,10 @@
 package datastoreHandlers
 
 import (
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/config"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"cloud.google.com/go/datastore"
 	"context"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/config"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
