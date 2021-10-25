@@ -1,10 +1,10 @@
-package handler
+package datastoreHandlers
 
 import (
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/datastoreHandlers/webhookDatastore"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"context"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/webhookDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -14,8 +14,14 @@ type Response struct {
 	ResponseCode int         `json:"responseCode"`
 }
 
-func CreateWebhook(e *echo.Echo) {
-	e.POST("/webhook", func(c echo.Context) (err error) {
+/*===========================================     CREATE       =========================================================*/
+
+func (h *Handler) AddCreateWebhook(e *echo.Echo)  {
+	e.POST("/webhook",h.CreateWebhook)
+}
+
+func(h *Handler) CreateWebhook(c echo.Context)(err error) {
+
 
 		//Validate data
 		dto := new(models.WebhookDto)
@@ -44,20 +50,28 @@ func CreateWebhook(e *echo.Echo) {
 		response := Response{w, http.StatusCreated}
 
 		return c.JSON(response.ResponseCode, response)
-	})
+
 }
 
-func ReadAllWebhooks(e *echo.Echo) {
-	e.GET("/webhook-all", func(c echo.Context) error {
+/*===========================================     READ ALL     =========================================================*/
+
+func (h *Handler) AddReadAllWebhooks(e *echo.Echo)  {
+	e.GET("/webhook-all",h.ReadAllWebhooks)
+}
+func (h *Handler) ReadAllWebhooks(c echo.Context)(err error) {
 		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 		webhooks := dsHandler.ReadAll()
 		response := Response{webhooks, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
-	})
+
 }
 
-func ReadWebhook(e *echo.Echo) {
-	e.GET("/webhook/:id", func(c echo.Context) error {
+/*=============================================     READ      ==========================================================*/
+
+func (h *Handler) AddReadWebhook(e *echo.Echo)  {
+	e.GET("/webhook/:id",h.ReadWebhook)
+}
+func(h *Handler) ReadWebhook(c echo.Context)(err error) {
 
 		_, id := datastoreHandlers.GetAndValidateId(c)
 
@@ -70,7 +84,7 @@ func ReadWebhook(e *echo.Echo) {
 
 		response := Response{entity, http.StatusOK}
 		return c.JSON(response.ResponseCode, response.Json)
-	})
+
 }
 
 type WebhookDtoUpdate struct {
@@ -78,8 +92,13 @@ type WebhookDtoUpdate struct {
 	Op     string   `json:"operator" validate:"eq=add|eq=sub|eq="`
 }
 
-func UpdateWebhook(e *echo.Echo) {
-	e.PUT("/webhook/:id", func(c echo.Context) error {
+/*===========================================      UPDATE      =========================================================*/
+
+func (h Handler) AddUpdateWebhook(e *echo.Echo)  {
+	e.PUT("/webhook/:id", h.UpdateWebhook)
+}
+func(h *Handler) UpdateWebhook(c echo.Context) (err error) {
+
 		_, id := datastoreHandlers.GetAndValidateId(c)
 
 		dto := new(WebhookDtoUpdate)
@@ -103,11 +122,15 @@ func UpdateWebhook(e *echo.Echo) {
 		response := Response{webhook, http.StatusCreated}
 
 		return c.JSON(response.ResponseCode, response)
-	})
 }
 
-func DeleteWebhook(e *echo.Echo) {
-	e.DELETE("/webhook/:id", func(c echo.Context) error {
+/*===========================================      DELETE      =========================================================*/
+
+func (h Handler) AddDeleteWebhook(e *echo.Echo)  {
+	e.DELETE("/webhook/:id",h.DeleteWebhook)
+}
+
+func (h Handler) DeleteWebhook(c echo.Context)(err error) {
 		_, id := datastoreHandlers.GetAndValidateId(c)
 		dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 		webhook, err := dsHandler.Delete(id)
@@ -117,7 +140,6 @@ func DeleteWebhook(e *echo.Echo) {
 		}
 		response := Response{webhook, http.StatusOK}
 		return c.JSON(response.ResponseCode, response)
-	})
 }
 
 type Result struct {
