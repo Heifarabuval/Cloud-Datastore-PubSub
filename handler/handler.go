@@ -18,3 +18,9 @@ type StoreWebhook interface {
 	Update(id int64, op string, fields []string) (models.Webhook, error)
 	Delete(id int64) (models.Webhook, error)
 }
+
+
+type Handler struct {
+StoreWebhook StoreWebhook
+StoreComputation StoreComputation
+}
