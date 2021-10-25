@@ -1,4 +1,4 @@
-package handler
+package datastoreHandlers
 
 import (
 	"context"
@@ -185,7 +185,7 @@ func (h *Handler) ReadComputation(c echo.Context) (err error) {
 /*===========================================      DELETE      =========================================================*/
 
 func (h *Handler) AddDeleteComputation(e *echo.Echo)  {
-	e.DELETE("/computation/:id",h.DeleteWebhook)
+	e.DELETE("/computation/:id",h.DeleteComputation)
 }
 func (h *Handler) DeleteComputation(c echo.Context) (err error) {
 		_, id := datastoreHandlers.GetAndValidateId(c)
