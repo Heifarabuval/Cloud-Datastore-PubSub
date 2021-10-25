@@ -16,8 +16,6 @@ func (s *DatastoreStoreWebhook) Delete(id int64) (models.Webhook, error) {
 		return webhook, err
 	}
 
-
-
 	//Create key for search
 	key := &datastore.Key{
 		Kind:      "Webhook",

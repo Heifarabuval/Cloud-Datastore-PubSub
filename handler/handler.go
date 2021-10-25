@@ -19,8 +19,7 @@ type StoreWebhook interface {
 	Delete(id int64) (models.Webhook, error)
 }
 
-
 type Handler struct {
-StoreWebhook StoreWebhook
-StoreComputation StoreComputation
+	StoreWebhook     StoreWebhook
+	StoreComputation StoreComputation
 }

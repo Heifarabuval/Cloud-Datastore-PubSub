@@ -62,84 +62,84 @@ func contains(s []string, str string) bool {
 func (h *Handler) AddCreateComputation(e *echo.Echo) {
 	e.POST("/computation", h.CreateComputation)
 }
-func(h *Handler) CreateComputation(c echo.Context) (err error) {
+func (h *Handler) CreateComputation(c echo.Context) (err error) {
 
-		//Validate data
-		dto := new(ComputationDtoCreate)
-		if err = c.Bind(dto); err != nil {
+	//Validate data
+	dto := new(ComputationDtoCreate)
+	if err = c.Bind(dto); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+	if err = c.Validate(dto); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
+	// Looking for linked webhook
+	dsHandlerWebhook := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	webhook, err := dsHandlerWebhook.Read(dto.WebhookId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
+	//Check if fields and values concords
+	if len(webhook.Fields) != len(dto.Values) {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+	for s := range dto.Values {
+		if contains(webhook.Fields, s) == false {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
-		if err = c.Validate(dto); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
+	//Persist data
+	dsHandlerComputation := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	id, err := dsHandlerComputation.Create(dto.WebhookId, dto.Values)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusConflict)
+	}
+
+	var valueToStore []models.CustomMap
+
+	for key, value := range dto.Values {
+		item := models.CustomMap{
+			Key:   key,
+			Value: value,
 		}
+		valueToStore = append(valueToStore, item)
+	}
 
-		// Looking for linked webhook
-		dsHandlerWebhook := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		webhook, err := dsHandlerWebhook.Read(dto.WebhookId)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
-		}
+	//Hydrate to return created object
+	w := models.Computation{
+		ID:        id,
+		WebhookId: dto.WebhookId,
+		Result:    dto.Result,
+		Values:    dto.Values,
+		Computed:  dto.Computed,
+	}
 
-		//Check if fields and values concords
-		if len(webhook.Fields) != len(dto.Values) {
-			return echo.NewHTTPError(http.StatusBadRequest)
-		}
-		for s, _ := range dto.Values {
-			if contains(webhook.Fields, s) == false {
-				return echo.NewHTTPError(http.StatusBadRequest)
-			}
-		}
+	pubSubPayload := PubSubPayload{
+		WebhookId:     webhook.ID,
+		ComputationId: id,
+		Op:            webhook.Op,
+		Fields:        webhook.Fields,
+		Values:        valueToStore,
+		Result:        0,
+	}
 
-		//Persist data
-		dsHandlerComputation := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		id, err := dsHandlerComputation.Create(dto.WebhookId, dto.Values)
+	psPayload, _ := json.Marshal(pubSubPayload)
+	ctx := context.Background()
 
-		if err != nil {
-			return echo.NewHTTPError(http.StatusConflict)
-		}
+	computeTopic.Publish(ctx, &pubsub.Message{
+		Data: psPayload,
+	})
 
-		var valueToStore []models.CustomMap
+	response := Response{w, http.StatusCreated}
 
-		for key, value := range dto.Values {
-			item := models.CustomMap{
-				Key:   key,
-				Value: value,
-			}
-			valueToStore = append(valueToStore, item)
-		}
+	if err != nil {
+		return err
+	}
 
-		//Hydrate to return created object
-		w := models.Computation{
-			ID:        id,
-			WebhookId: dto.WebhookId,
-			Result:    dto.Result,
-			Values:    dto.Values,
-			Computed:  dto.Computed,
-		}
-
-		pubSubPayload := PubSubPayload{
-			WebhookId:     webhook.ID,
-			ComputationId: id,
-			Op:            webhook.Op,
-			Fields:        webhook.Fields,
-			Values:        valueToStore,
-			Result:        0,
-		}
-
-		psPayload, _ := json.Marshal(pubSubPayload)
-		ctx := context.Background()
-
-		computeTopic.Publish(ctx, &pubsub.Message{
-			Data: psPayload,
-		})
-
-		response := Response{w, http.StatusCreated}
-
-		if err != nil {
-			return err
-		}
-
-		return c.JSON(response.ResponseCode, response)
+	return c.JSON(response.ResponseCode, response)
 
 }
 
@@ -150,51 +150,51 @@ func (h *Handler) AddReadAllComputations(e *echo.Echo) {
 }
 
 func (h *Handler) ReadAllComputations(c echo.Context) (err error) {
-		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		computations, err := dsHandler.ReadAll()
-		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-		if len(computations) == 0 {
-			return echo.NewHTTPError(http.StatusNotFound, "Computations list is empty")
-		}
-		response := Response{computations, http.StatusOK}
-		return c.JSON(response.ResponseCode, response)
+	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	computations, err := dsHandler.ReadAll()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound)
+	}
+	if len(computations) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "Computations list is empty")
+	}
+	response := Response{computations, http.StatusOK}
+	return c.JSON(response.ResponseCode, response)
 }
 
 /*=============================================     READ      ==========================================================*/
 
-func (h *Handler) AddReadComputation(e *echo.Echo)  {
-	e.GET("/computation/:id",h.ReadComputation)
+func (h *Handler) AddReadComputation(e *echo.Echo) {
+	e.GET("/computation/:id", h.ReadComputation)
 }
 func (h *Handler) ReadComputation(c echo.Context) (err error) {
 
-		_, id := datastoreHandlers.GetAndValidateId(c)
+	_, id := datastoreHandlers.GetAndValidateId(c)
 
-		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		computation, err := dsHandler.Read(id)
+	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	computation, err := dsHandler.Read(id)
 
-		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-		response := Response{computation, http.StatusOK}
-		return c.JSON(response.ResponseCode, response.Json)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound)
+	}
+	response := Response{computation, http.StatusOK}
+	return c.JSON(response.ResponseCode, response.Json)
 
 }
 
 /*===========================================      DELETE      =========================================================*/
 
-func (h *Handler) AddDeleteComputation(e *echo.Echo)  {
-	e.DELETE("/computation/:id",h.DeleteComputation)
+func (h *Handler) AddDeleteComputation(e *echo.Echo) {
+	e.DELETE("/computation/:id", h.DeleteComputation)
 }
 func (h *Handler) DeleteComputation(c echo.Context) (err error) {
-		_, id := datastoreHandlers.GetAndValidateId(c)
-		dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-		computation, err := dsHandler.Delete(id)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-		response := Response{computation, http.StatusOK}
-		return c.JSON(response.ResponseCode, response)
+	_, id := datastoreHandlers.GetAndValidateId(c)
+	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	computation, err := dsHandler.Delete(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound)
+	}
+	response := Response{computation, http.StatusOK}
+	return c.JSON(response.ResponseCode, response)
 
 }

@@ -30,7 +30,7 @@ func main() {
 	//Getting port in .env
 	port := utils.GetEnvVar("PORT", "8000")
 
-	handler:= new (datastoreHandlers.Handler)
+	handler := new(datastoreHandlers.Handler)
 
 	//Crud webhookDatastore handler
 	handler.AddCreateWebhook(e)

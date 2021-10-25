@@ -6,8 +6,6 @@ import (
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 )
 
-
-
 func (s *DatastoreStoreComputation) Create(webhookId int64, values map[string]int64) (int64, error) {
 
 	//Transform map for pub/sub
