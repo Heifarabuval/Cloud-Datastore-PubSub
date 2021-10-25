@@ -1,4 +1,4 @@
-package handler
+package datastoreHandlers
 
 import (
 	"github.com/stretchr/testify/assert"
