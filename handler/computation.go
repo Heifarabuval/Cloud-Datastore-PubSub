@@ -1,18 +1,14 @@
-package datastoreHandlers
+package handler
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/computationDatastore"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/webhookDatastore"
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
+	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/utils"
-	"github.com/labstack/echo/v4"
 )
 
 type ComputationDtoCreate struct {
@@ -23,7 +19,7 @@ type ComputationDtoCreate struct {
 }
 
 var (
-	projectID    = utils.GetEnvVar("PROJECT_NAME", "heifara-test")
+	projectID    = "heifara-test" /*utils.GetEnvVar("PROJECT_NAME", "heifara-test")*/
 	pubSubClient *pubsub.Client
 	computeTopic *pubsub.Topic
 )
@@ -74,8 +70,8 @@ func (h *Handler) CreateComputation(c echo.Context) (err error) {
 	}
 
 	// Looking for linked webhook
-	dsHandlerWebhook := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	webhook, err := dsHandlerWebhook.Read(dto.WebhookId)
+	webhook, err := h.StoreWebhook.Read(dto.WebhookId)
+
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
@@ -91,8 +87,7 @@ func (h *Handler) CreateComputation(c echo.Context) (err error) {
 	}
 
 	//Persist data
-	dsHandlerComputation := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	id, err := dsHandlerComputation.Create(dto.WebhookId, dto.Values)
+	id, err := h.StoreComputation.Create(dto.WebhookId, dto.Values)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusConflict)
@@ -109,7 +104,7 @@ func (h *Handler) CreateComputation(c echo.Context) (err error) {
 	}
 
 	//Hydrate to return created object
-	w := models.Computation{
+	computation := models.Computation{
 		ID:        id,
 		WebhookId: dto.WebhookId,
 		Result:    dto.Result,
@@ -133,7 +128,7 @@ func (h *Handler) CreateComputation(c echo.Context) (err error) {
 		Data: psPayload,
 	})
 
-	response := Response{w, http.StatusCreated}
+	response := Response{computation, http.StatusCreated}
 
 	if err != nil {
 		return err
@@ -150,8 +145,7 @@ func (h *Handler) AddReadAllComputations(e *echo.Echo) {
 }
 
 func (h *Handler) ReadAllComputations(c echo.Context) (err error) {
-	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	computations, err := dsHandler.ReadAll()
+	computations, err := h.StoreComputation.ReadAll()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
@@ -171,8 +165,7 @@ func (h *Handler) ReadComputation(c echo.Context) (err error) {
 
 	_, id := datastoreHandlers.GetAndValidateId(c)
 
-	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	computation, err := dsHandler.Read(id)
+	computation, err := h.StoreComputation.Read(id)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
@@ -189,8 +182,7 @@ func (h *Handler) AddDeleteComputation(e *echo.Echo) {
 }
 func (h *Handler) DeleteComputation(c echo.Context) (err error) {
 	_, id := datastoreHandlers.GetAndValidateId(c)
-	dsHandler := computationDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	computation, err := dsHandler.Delete(id)
+	computation, err := h.StoreComputation.Delete(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
