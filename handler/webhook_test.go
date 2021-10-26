@@ -1,7 +1,11 @@
-package datastoreHandlers
+package handler
 
 import (
+	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -19,8 +23,19 @@ func (m WebhookDto) InitWebhook(op string, fields []string) bool {
 
 func TestCreateWebhook(t *testing.T) {
 	// assert equality
-
-	assert.Equal(t, 123, 123, "they should be equal")
+	var testString = strings.NewReader(`{"fields": ["a", "b", "c"],"operator":"sub"}`)
+	c,_,res := createEchoTest("/webhook",testString,http.MethodPost)
+	h, msw, _ := createMockedHandler()
+	webhook := models.Webhook{
+		ID:     9999999999999,
+		Fields: []string{"a","b","c"},
+		Op:     "sub",
+	}
+	msw.On("Create",mock.Anything).Return(&webhook,nil)
+	if assert.NoError(t, h.CreateWebhook(c)) {
+		assert.Equal(t, http.StatusCreated,res.Code)
+		assert.Equal(t, "{\"data\":{\"id\":9999999999999,\"fields\":[\"a\",\"b\",\"c\"],\"operator\":\"sub\"},\"responseCode\":201}\n",res.Body.String())
+	}
 }
 
 func TestDeleteWebhook(t *testing.T) {
