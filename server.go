@@ -28,10 +28,10 @@ func initHandlers(e *echo.Echo, wStore datastoreHandlers.StoreWebhook, cStore da
 	handler.AddDeleteWebhook(e)
 
 	//Crud computationDatastore handler
-		handler.AddCreateComputation(e)
-		handler.AddReadAllComputations(e)
-		handler.AddReadComputation(e)
-		handler.AddDeleteComputation(e)
+	handler.AddCreateComputation(e)
+	handler.AddReadAllComputations(e)
+	handler.AddReadComputation(e)
+	handler.AddDeleteComputation(e)
 }
 
 // Init a new client

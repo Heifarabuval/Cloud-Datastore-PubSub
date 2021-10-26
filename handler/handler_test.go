@@ -34,7 +34,7 @@ func (s *MockedStoreWebhook) ReadAll() ([]models.Webhook, error) {
 
 func (s *MockedStoreWebhook) Create(webhook *models.Webhook) (*models.Webhook, error) {
 	args := s.Called(webhook)
-	webhook.ID=333333333333
+	webhook.ID = 333333333333
 	return args.Get(0).(*models.Webhook), args.Error(1)
 }
 

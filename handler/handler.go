@@ -194,8 +194,7 @@ func NewDatastoreComputationStore(client *datastore.Client) (StoreComputation, e
 	return ds, nil
 }
 
-
-func (s *DsComputationStore) Create(webhookId int64, values map[string]int64) (int64, error){
+func (s *DsComputationStore) Create(webhookId int64, values map[string]int64) (int64, error) {
 	//Transform map for pub/sub
 	var valueToStore []models.CustomMap
 	for key, value := range values {
@@ -222,7 +221,7 @@ func (s *DsComputationStore) Create(webhookId int64, values map[string]int64) (i
 
 	return computation.ID, nil
 }
-func (s *DsComputationStore) Read(id int64) (models.Computation, error){
+func (s *DsComputationStore) Read(id int64) (models.Computation, error) {
 	computationDs := models.ComputationRead{}
 
 	//Create key for search
@@ -249,7 +248,7 @@ func (s *DsComputationStore) Read(id int64) (models.Computation, error){
 	computation.Computed = computationDs.Computed
 	return computation, nil
 }
-func (s *DsComputationStore) ReadAll() ([]models.Computation, error){
+func (s *DsComputationStore) ReadAll() ([]models.Computation, error) {
 	//Model
 	var computations []models.ComputationRead
 	var computationsFinal []models.Computation
@@ -275,7 +274,7 @@ func (s *DsComputationStore) ReadAll() ([]models.Computation, error){
 
 	return computationsFinal, nil
 }
-func (s *DsComputationStore) Delete(id int64) (models.Computation, error){
+func (s *DsComputationStore) Delete(id int64) (models.Computation, error) {
 	//Verify if computationDatastore exist
 	ctx := context.Background()
 	computation, err := s.Read(id)
@@ -295,4 +294,3 @@ func (s *DsComputationStore) Delete(id int64) (models.Computation, error){
 
 	return computation, nil
 }
-

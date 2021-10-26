@@ -114,7 +114,6 @@ func (h *Handler) UpdateWebhook(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 
-
 	//Persist data
 	webhook, err := h.StoreWebhook.Update(id, dto.Op, dto.Fields)
 	if err != nil {
@@ -145,5 +144,5 @@ func (h Handler) DeleteWebhook(c echo.Context) (err error) {
 
 type Result struct {
 	computation interface{}
-	 webhook     interface{}
+	webhook     interface{}
 }
