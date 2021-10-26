@@ -1,9 +1,7 @@
-package datastoreHandlers
+package handler
 
 import (
-	"context"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers"
-	"github.com/Heifarabuval/Cloud-Datastore-PubSub/handler/datastoreHandlers/webhookDatastore"
 	"github.com/Heifarabuval/Cloud-Datastore-PubSub/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -32,20 +30,18 @@ func (h *Handler) CreateWebhook(c echo.Context) (err error) {
 	if err = c.Validate(dto); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	payload := models.Webhook{
+		ID:     0,
+		Fields: dto.Fields,
+		Op:     dto.Op,
+	}
 
 	//Persist data
-	id, err := dsHandler.Create(dto.Op, dto.Fields)
+	w, err := h.StoreWebhook.Create(&payload)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusConflict)
 	}
 
-	//Hydrate to return created object
-	w := models.Webhook{
-		ID:     id,
-		Fields: dto.Fields,
-		Op:     dto.Op,
-	}
 	response := Response{w, http.StatusCreated}
 
 	return c.JSON(response.ResponseCode, response)
@@ -58,9 +54,15 @@ func (h *Handler) AddReadAllWebhooks(e *echo.Echo) {
 	e.GET("/webhook-all", h.ReadAllWebhooks)
 }
 func (h *Handler) ReadAllWebhooks(c echo.Context) (err error) {
-	dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	webhooks := dsHandler.ReadAll()
-	response := Response{webhooks, http.StatusOK}
+	w, err := h.StoreWebhook.ReadAll()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusConflict)
+	}
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusConflict)
+	}
+	response := Response{w, http.StatusOK}
 	return c.JSON(response.ResponseCode, response)
 
 }
@@ -74,14 +76,16 @@ func (h *Handler) ReadWebhook(c echo.Context) (err error) {
 
 	_, id := datastoreHandlers.GetAndValidateId(c)
 
-	dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
+	w, err := h.StoreWebhook.Read(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusConflict)
+	}
 
-	entity, err := dsHandler.Read(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 
-	response := Response{entity, http.StatusOK}
+	response := Response{w, http.StatusOK}
 	return c.JSON(response.ResponseCode, response.Json)
 
 }
@@ -110,10 +114,9 @@ func (h *Handler) UpdateWebhook(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
 
-	dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
 
 	//Persist data
-	webhook, err := dsHandler.Update(id, dto.Op, dto.Fields)
+	webhook, err := h.StoreWebhook.Update(id, dto.Op, dto.Fields)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
@@ -131,8 +134,7 @@ func (h Handler) AddDeleteWebhook(e *echo.Echo) {
 
 func (h Handler) DeleteWebhook(c echo.Context) (err error) {
 	_, id := datastoreHandlers.GetAndValidateId(c)
-	dsHandler := webhookDatastore.InitClient(datastoreHandlers.CreateClient(context.Background()))
-	webhook, err := dsHandler.Delete(id)
+	webhook, err := h.StoreWebhook.Delete(id)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
@@ -143,5 +145,5 @@ func (h Handler) DeleteWebhook(c echo.Context) (err error) {
 
 type Result struct {
 	computation interface{}
-	webhook     interface{}
+	 webhook     interface{}
 }
