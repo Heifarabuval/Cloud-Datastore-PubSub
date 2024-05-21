@@ -46,7 +46,7 @@ pymongo==3.12.0
 pyparsing==2.4.7
 python-dateutil==2.8.2
 pytz==2021.3
-requests==2.31.0
+requests==2.32.0
 rsa==4.7.2
 six @ file:///AppleInternal/BuildRoot/Library/Caches/com.apple.xbs/Sources/python3/python3-103/six-1.15.0-py2.py3-none-any.whl
 typing-extensions==3.7.4.3
